@@ -1,41 +1,45 @@
-TP flutter Noé Delquié ESGIB
-Date : 09/01/2026  
-Dépôt Git : [à compléter : lien Github/Gitlab]  
-Branche par défaut : main 
+TP Docker
 
-Présentation du projet
-Application Flutter composée de 2 pages : accueil et météo
+Noé Delquié ESGI 2
+Dépôt Git : https://github.com/Chapanok/tp_api_meteo
+Branche : main
 
-1.	Page Accueil
--	Saisie de la ville de résidence de l’user
--	Bouton voir la météo qui amène à la page 2
--	Démonstration d’une API open source (JSONPlaceholder) : test d’appel HTTP et affichage d’un statut (loading/erreur/succès).
-Cette partie a été ajoutée pour rajouter du contenu à la page d’accueil qui était vide 
+1) Introduction
+Vous aviez demandé de réaliser ce que l’on souhaitait du moment où il y avait : un frontend, un backend et une api.
+J’ai donc choisi de reprendre mon projet de flutter et d’y ajouter docker en déployant une architecture 3 tiers avec Docker
+Front : html, javascript (sert une page statique et fait le reverse-proxy vers l’API)
+Back : Node.js (endpoints /health et /api/cities)
+BDD : PostreSQL (avec persistance via volume)
 
-2.	Page Météo
--	Recherche météo via l’api openweathermap
--	 Le champ ville est pré-rempli avec la ville saisie sur la page d’accueil (transfert de données via Provider)
--	Affichage des données météo principales : température, ressenti, humidité, vent, description
+J’ai commencé par envoyer ce prompt à claude code. Je l’ai réalisé avec ChatGPT : Prompt.txt 
 
-APIs utilisées
-- OpenWeatherMap : récupération de la météo à partir d’un nom de ville
-- JSONPlaceholder : endpoint GET /posts pour démonstration d’appel HTTP
+J’ai ensuite choisi la solution que je vous ai présenté juste avant
 
 
-Solutions techniques choisies
--	go_router : navigation entre les pages
--	provider + ChangeNotifier : partage d’état entre pages (ville enregistrée + états loading/erreur/données)
--	http : appels réseau
--	Widgets natifs Material (Column, Row, Padding, Card, Center, ListView, etc.)
+2) Mise en place de le db
+Après que j’ai donné le go à claude code, il as tout généré et j’ai pu faire ma bdd. 
+J’ai commencé par initialiser le volume,
+meteo-pgdata pour conserver les données même après redémarrage
+
+Puis j’ai lancé postgresql avec persistance (volume) + exécution automatique de init.sql au premier démarrage
+Screenshot 1-3
 
 
-État d’avancement
--	Projet clonable / installable / exécutable en environnement de développement
--	2 pages + router fonctionnel
--	Transfert de données (ville saisie sur Accueil -> pré-remplissage sur Météo) via Provider
--	Fonctionnalités opérationnelles (appel OpenWeatherMap + transfert de données)
+3) Lancement du frontend
+e frontend est un serveur Nginx : il affiche la page et relaie les appels API vers le backend dans le réseau Docker
 
+4) Création du réseau dédié
+J’ai commencé par créer mon réseau
+Puis j’ai supprimé le conteneur. Le volume reste le même
+Et enfin j’ai relancé la db sur le réseau
 
+Enfin, j’ai relancé le backend, puis le frontend (voir screenshot 6). 
 
-Lien du dépôt
+Retour de inspect : Inspect.txt
+
+Screenshot : 5-6
+
+5) Docker Compose 
+Avec Docker Compose, les 3 conteneurs démarrent ensemble. J’ai contrôlé les endpoints, ajouté une ville, puis redémarré pour prouver la persistance
+Screenshot 9 : ajout d’une ville
 

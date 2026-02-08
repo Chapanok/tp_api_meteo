@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TP Docker 3-tiers — Villes &amp; Météo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 8px; color: #1565c0; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.9em; }
+    .container { max-width: 700px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 1.1em; margin-bottom: 12px; color: #333; }
+    .status { padding: 10px 14px; border-radius: 6px; font-size: 0.95em; }
+    .status.ok { background: #e8f5e9; color: #2e7d32; }
+    .status.err { background: #ffebee; color: #c62828; }
+    .status.loading { background: #fff3e0; color: #e65100; }
+    input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; margin-bottom: 10px; }
+    .btn-row { display: flex; gap: 8px; }
+    button { padding: 10px 18px; border: none; border-radius: 6px; font-size: 0.95em; cursor: pointer; transition: opacity 0.2s; }
+    button:hover { opacity: 0.85; }
+    .btn-primary { background: #1565c0; color: #fff; }
+    .btn-secondary { background: #e0e0e0; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f5f5f5; font-weight: 600; font-size: 0.9em; color: #555; }
+    td { font-size: 0.95em; }
+    .empty { text-align: center; color: #999; padding: 20px; }
+    .delete-btn { background: none; border: none; color: #c62828; cursor: pointer; font-size: 1.1em; padding: 2px 6px; }
+    .delete-btn:hover { background: #ffebee; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TP Docker 3-tiers</h1>
+    <p class="subtitle">Frontend (nginx) → Backend (Node.js) → Base de données (PostgreSQL)</p>
+
+    <!-- Health check -->
+    <div class="card">
+      <h2>Statut du backend</h2>
+      <div id="health" class="status loading">Vérification en cours...</div>
+    </div>
+
+    <!-- Ajouter une ville -->
+    <div class="card">
+      <h2>Ajouter une ville</h2>
+      <input type="text" id="cityName" placeholder="Nom de la ville (ex: Marseille)" />
+      <input type="text" id="cityCountry" placeholder="Pays (ex: FR)" />
+      <div class="btn-row">
+        <button class="btn-primary" onclick="addCity()">Ajouter</button>
+        <button class="btn-secondary" onclick="loadCities()">Rafraîchir la liste</button>
+      </div>
+    </div>
+
+    <!-- Liste des villes -->
+    <div class="card">
+      <h2>Villes enregistrées <span id="count"></span></h2>
+      <div id="cities"></div>
+    </div>
+  </div>
+
+  <script>
+    // Toutes les requêtes passent par /api ou /health grâce au reverse proxy nginx
+    // => même origine, pas de CORS
+
+    async function checkHealth() {
+      const el = document.getElementById("health");
+      try {
+        const res = await fetch("/health");
+        const data = await res.json();
+        if (data.status === "ok") {
+          el.className = "status ok";
+          el.textContent = `Backend OK — BDD connectée — ${data.server_time}`;
+        } else {
+          el.className = "status err";
+          el.textContent = `Backend en erreur : ${data.error || "inconnu"}`;
+        }
+      } catch (e) {
+        el.className = "status err";
+        el.textContent = `Impossible de joindre le backend : ${e.message}`;
+      }
+    }
+
+    async function loadCities() {
+      const el = document.getElementById("cities");
+      const countEl = document.getElementById("count");
+      try {
+        const res = await fetch("/api/cities");
+        const cities = await res.json();
+        countEl.textContent = `(${cities.length})`;
+        if (cities.length === 0) {
+          el.innerHTML = '<div class="empty">Aucune ville enregistrée. Ajoutez-en une !</div>';
+          return;
+        }
+        let html = "<table><thead><tr><th>ID</th><th>Ville</th><th>Pays</th><th>Ajoutée le</th><th></th></tr></thead><tbody>";
+        cities.forEach(c => {
+          const date = new Date(c.created_at).toLocaleString("fr-FR");
+          html += `<tr>
+            <td>${c.id}</td>
+            <td>${c.name}</td>
+            <td>${c.country || "—"}</td>
+            <td>${date}</td>
+            <td><button class="delete-btn" onclick="deleteCity(${c.id})" title="Supprimer">✕</button></td>
+          </tr>`;
+        });
+        html += "</tbody></table>";
+        el.innerHTML = html;
+      } catch (e) {
+        el.innerHTML = `<div class="status err">Erreur : ${e.message}</div>`;
+      }
+    }
+
+    async function addCity() {
+      const name = document.getElementById("cityName").value.trim();
+      const country = document.getElementById("cityCountry").value.trim();
+      if (!name) { alert("Entrez un nom de ville."); return; }
+      try {
+        await fetch("/api/cities", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, country }),
+        });
+        document.getElementById("cityName").value = "";
+        document.getElementById("cityCountry").value = "";
+        loadCities();
+      } catch (e) {
+        alert("Erreur : " + e.message);
+      }
+    }
+
+    async function deleteCity(id) {
+      try {
+        await fetch(`/api/cities/${id}`, { method: "DELETE" });
+        loadCities();
+      } catch (e) {
+        alert("Erreur : " + e.message);
+      }
+    }
+
+    // Chargement initial
+    checkHealth();
+    loadCities();
+  </script>
+</body>
+</html>

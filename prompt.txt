@@ -1,0 +1,24 @@
+TU ES CLAUDE CODE DANS UN REPO LOCAL.
+Objectif: partir de CE projet existant (un ancien TP) et l’adapter pour répondre au TP “Tutoriel Docker - Stack 3-tiers” (frontend + backend + base de données) en allant de docker run -> réseau dédié -> docker compose, puis (bonus/apport perso) push sur Docker Hub + 1-2 améliorations avancées. Tu va me proposer différentes solutions pour pouvoir faire en sorte que mon projet soit capable d’accueillir la réalisation de ce TP
+
+Contraintes importantes:
+- Ne casse pas le projet: fais des changements minimalistes et propres.
+- Tout doit marcher en local avec Docker (pas besoin de cloud).
+- Choisis une base de données parmi PostgreSQL ou MariaDB (prends celle qui colle le mieux au projet existant). Si le projet utilise déjà MySQL/MariaDB, garde MariaDB.
+- Backend: doit exposer au minimum `/health` (ou `/api/status`) + un endpoint qui lit la BDD (liste simple: users/products/etc).
+- La connexion BDD doit passer par variables d’environnement.
+- Frontend: affiche les données récupérées depuis le backend (même moche) et prouve que la communication fonctionne.
+- Point crucial: depuis le navigateur, `localhost` != réseau Docker. Mets en place une stratégie claire.
+  => Recommandation simple: servir le frontend via nginx et proxyfier `/api` vers le backend (même origin), pour éviter CORS et simplifier l’URL.
+
+PLAN DE TRAVAIL (à exécuter dans le repo):
+1) ANALYSE DU PROJET
+- Inspecte l’arborescence (frontend/back déjà présents ? langage ? ports ? scripts ? dépendances ?).
+- Dis-moi ce que tu détectes: techno front, techno back, port(s), comment on lance chaque partie, et si une DB est déjà prévue.
+- Propose une stack finale (backend + frontend + DB) cohérente avec l’existant. Justifie le choix.
+
+2) RETOUR DES INFROMATIONS
+- Retourne moi différentes options claires
+- Dis-moi les points positifs et négatifs de chaque options
+- Fait moi un résumé clair et complet de chaque options
+

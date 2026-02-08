@@ -1,0 +1,14 @@
+{
+  "name": "meteo-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour le TP Docker 3-tiers (cities + health)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "pg": "^8.13.0",
+    "cors": "^2.8.5"
+  }
+}

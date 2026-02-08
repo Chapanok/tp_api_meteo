@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: meteo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-meteo_db}
+      POSTGRES_USER: ${DB_USER:-meteo_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-meteo_pass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - meteo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-meteo_user} -d ${DB_NAME:-meteo_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: meteo-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-meteo_db}
+      DB_USER: ${DB_USER:-meteo_user}
+      DB_PASSWORD: ${DB_PASSWORD:-meteo_pass}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - meteo-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: meteo-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - meteo-network
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+    name: meteo-pgdata
+
+networks:
+  meteo-network:
+    external: true
+    name: meteo-network

@@ -1,0 +1,51 @@
+:\Users\Utilisateur\Desktop\esgi\Cours\Notes\Développement Application android\Tp\tp_flutter_api_meteo>docker network inspect meteo-network
+[
+    {
+        "Name": "meteo-network",
+        "Id": "ff3c28fa038cdd5ab55493d0c3216802528b230d7caa0c4ea4489685b06c516c",
+        "Created": "2026-02-08T22:20:13.98207912Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv4": true,
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "6cb8a3a4de95b15bc84bf8347a2d4eb88e2af7555ac9b64d6603518dc1823b07": {
+                "Name": "meteo-db",
+                "EndpointID": "9280772ee6d5c8b91f9d18bb774eac1e83365bc6e7b13be0f670006fd6239edf",
+                "MacAddress": "8e:6d:01:6d:42:2d",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            },
+            "783805bd4913e048359757f62be250fd83779b3e8c2a99ba732db2ba702d092d": {
+                "Name": "meteo-backend",
+                "EndpointID": "aeae4e32068b4a3a063afea21b91a8724a801c119869573a9b6dfa371f51fe18",
+                "MacAddress": "de:94:aa:8f:1c:70",
+                "IPv4Address": "172.18.0.3/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.enable_ipv4": "true",
+            "com.docker.network.enable_ipv6": "false"
+        },
+        "Labels": {}
+    }
+]
+
